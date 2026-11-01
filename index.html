@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Coldbet Pro V5.2 - Signal Bot</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        body {
+            background-color: #0d1b2a;
+            color: #ffffff;
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 0;
+            padding: 15px;
+        }
+        .header {
+            background: linear-gradient(135deg, #1b263b, #415a77);
+            padding: 12px;
+            border-radius: 12px;
+            margin-bottom: 15px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        }
+        .promo-badge {
+            background-color: #00b4d8;
+            color: #fff;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: bold;
+            display: inline-block;
+            margin-top: 5px;
+        }
+        /* Asosiy menyu tugmalari */
+        .menu-container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            max-width: 320px;
+            margin: 20px auto;
+        }
+        .menu-btn {
+            background: linear-gradient(135deg, #1b263b, #415a77);
+            color: white;
+            border: 2px solid #00b4d8;
+            padding: 12px;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .menu-btn:active {
+            transform: scale(0.98);
+        }
+        /* O'yin oynasi va Koeffitsiyentlar */
+        .game-wrapper {
+            display: none;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            max-width: 360px;
+            margin: 10px auto;
+        }
+        .coefficients {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        .coef-item {
+            background-color: #1b263b;
+            color: #00b4d8;
+            font-size: 11px;
+            font-weight: bold;
+            padding: 6px 4px;
+            border-radius: 6px;
+            width: 55px;
+            text-align: center;
+            border: 1px solid #415a77;
+        }
+        .game-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 6px;
+            background: #1b263b;
+            padding: 10px;
+            border-radius: 12px;
+            width: 250px;
+        }
+        .cell {
+            aspect-ratio: 1;
+            background-color: #415a77;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+        }
+        .cell.active {
+            background-color: #00b4d8;
+            box-shadow: 0 0 8px #00b4d8;
+        }
+        /* Boshqa tugmalar */
+        .btn {
+            background-color: #00b4d8;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            font-size: 15px;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-top: 15px;
+            width: 100%;
+            max-width: 320px;
+            box-shadow: 0 4px 10px rgba(0,180,216,0.4);
+        }
+        .back-btn {
+            background-color: #e63946;
+            margin-top: 10px;
+        }
+        .tg-channel-btn {
+            background: linear-gradient(135deg, #0077b6, #00b4d8);
+            text-decoration: none;
+            display: inline-block;
+            box-sizing: border-box;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h2>🧊 COLDBET PRO V5.2</h2>
+        <p>VIP Signal Generator</p>
+        <div class="promo-badge">PROMO: MUZZ</div>
+    </div>
+
+    <!-- ASOSIY MENYU -->
+    <div id="mainMenu" class="menu-container">
+        <p>O'yinni tanlang:</p>
+        <button class="menu-btn" onclick="openGame('apple')">🍎 Apple of Fortune</button>
+        <button class="menu-btn" onclick="openGame('mines')">💎 Gems Mines</button>
+        <button class="menu-btn" onclick="openGame('dragon')">🐉 Dragon's Gold</button>
+        
+        <!-- Telegram Kanal Tugmasi -->
+        <a href="https://t.me/MUZZCOLD" target="_blank" class="btn tg-channel-btn">📢 TELEGRAM KANALIMIZ</a>
+    </div>
+
+    <!-- O'YIN INTERFEYSI -->
+    <div id="gameScreen" style="display: none;">
+        <h3 id="gameTitle">Apple of Fortune</h3>
+        <p id="instruction">Signal olish tugmasini bosing:</p>
+
+        <div class="game-wrapper">
+            <!-- Chap tomondagi koeffitsiyentlar -->
+            <div class="coefficients" id="coefList">
+                <!-- JavaScript orqali to'ldiriladi -->
+            </div>
+            <!-- O'yin kataklari -->
+            <div class="game-grid" id="grid"></div>
+        </div>
+
+        <button class="btn" onclick="generateSignal()">SIGNAL OLISH 🚀</button>
+        <button class="btn back-btn" onclick="goBack()">🔙 MENYUGA QAYTISH</button>
+    </div>
+
+    <script>
+        const tg = window.Telegram.WebApp;
+        tg.expand();
+
+        let currentGame = 'apple';
+
+        const coefficientsData = [
+            "x 349.68", "x 69.93", "x 27.97", "x 11.18", 
+            "x 6.71", "x 4.02", "x 2.41", "x 1.93", 
+            "x 1.54", "x 1.23"
+        ];
+
+        function openGame(gameType) {
+            currentGame = gameType;
+            document.getElementById('mainMenu').style.display = 'none';
+            document.getElementById('gameScreen').style.display = 'block';
+            
+            if(gameType === 'apple') document.getElementById('gameTitle').innerText = 'Apple of Fortune';
+            if(gameType === 'mines') document.getElementById('gameTitle').innerText = 'Gems Mines';
+            if(gameType === 'dragon') document.getElementById('gameTitle').innerText = 'Dragon\'s Gold';
+
+            setupBoard();
+        }
+
+        function goBack() {
+            document.getElementById('gameScreen').style.display = 'none';
+            document.getElementById('mainMenu').style.display = 'flex';
+        }
+
+        function setupBoard() {
+            const grid = document.getElementById('grid');
+            const coefList = document.getElementById('coefList');
+            grid.innerHTML = '';
+            coefList.innerHTML = '';
+
+            // 10 qator va 5 ustun (jami 50 katak, yoki standart 7 qator)
+            // Haqiqiy Apple of Fortune kabi 7 qator qilamiz:
+            const totalRows = 7;
+            const activeCoefs = coefficientsData.slice(3, 10).reverse(); // Pastdan tepaga qarab
+
+            for (let i = 0; i < activeCoefs.length; i++) {
+                const coefDiv = document.createElement('div');
+                coefDiv.className = 'coef-item';
+                coefDiv.innerText = activeCoefs[i];
+                coefList.appendChild(coefDiv);
+            }
+
+            grid.style.gridTemplateRows = `repeat(${totalRows}, 1fr)`;
+
+            for (let i = 0; i < totalRows * 5; i++) {
+                const cell = document.createElement('div');
+                cell.className = 'cell';
+                cell.id = `cell-${i}`;
+                grid.appendChild(cell);
+            }
+        }
+
+        function generateSignal() {
+            const totalRows = 7;
+            
+            // Tozalash
+            for (let i = 0; i < totalRows * 5; i++) {
+                const c = document.getElementById(`cell-${i}`);
+                if(c) {
+                    c.classList.remove('active');
+                    c.innerHTML = '';
+                }
+            }
+
+            // Har bir qatordan tasodifiy bittadan katakni yoritish
+            for (let row = 0; row < totalRows; row++) {
+                const randomCol = Math.floor(Math.random() * 5);
+                const cellIndex = (row * 5) + randomCol;
+                const targetCell = document.getElementById(`cell-${cellIndex}`);
+                if(targetCell) {
+                    targetCell.classList.add('active');
+                    if(currentGame === 'apple') targetCell.innerHTML = '🍎';
+                    else if(currentGame === 'mines') targetCell.innerHTML = '💎';
+                    else targetCell.innerHTML = '🐉';
+                }
+            }
+        }
+    </script>
+</body>
+</html>
