@@ -31,11 +31,11 @@
             display: inline-block;
             margin-top: 5px;
         }
-        /* Asosiy menyu tugmalari */
+        /* Asosiy menyu */
         .menu-container {
             display: flex;
             flex-direction: column;
-            gap: 10px;
+            gap: 12px;
             max-width: 320px;
             margin: 20px auto;
         }
@@ -43,7 +43,7 @@
             background: linear-gradient(135deg, #1b263b, #415a77);
             color: white;
             border: 2px solid #00b4d8;
-            padding: 12px;
+            padding: 14px;
             font-size: 16px;
             font-weight: bold;
             border-radius: 10px;
@@ -53,9 +53,12 @@
         .menu-btn:active {
             transform: scale(0.98);
         }
-        /* O'yin oynasi va Koeffitsiyentlar */
-        .game-wrapper {
+        /* O'yin oynasi */
+        #gameScreen {
             display: none;
+        }
+        .game-wrapper {
+            display: flex;
             align-items: center;
             justify-content: center;
             gap: 8px;
@@ -65,16 +68,16 @@
         .coefficients {
             display: flex;
             flex-direction: column;
-            gap: 5px;
+            gap: 6px;
         }
         .coef-item {
             background-color: #1b263b;
             color: #00b4d8;
-            font-size: 11px;
+            font-size: 12px;
             font-weight: bold;
-            padding: 6px 4px;
+            padding: 8px 4px;
             border-radius: 6px;
-            width: 55px;
+            width: 60px;
             text-align: center;
             border: 1px solid #415a77;
         }
@@ -94,13 +97,13 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 16px;
+            font-size: 18px;
         }
         .cell.active {
             background-color: #00b4d8;
-            box-shadow: 0 0 8px #00b4d8;
+            box-shadow: 0 0 10px #00b4d8;
         }
-        /* Boshqa tugmalar */
+        /* Tugmalar */
         .btn {
             background-color: #00b4d8;
             color: white;
@@ -114,6 +117,9 @@
             width: 100%;
             max-width: 320px;
             box-shadow: 0 4px 10px rgba(0,180,216,0.4);
+        }
+        .btn:active {
+            transform: scale(0.98);
         }
         .back-btn {
             background-color: #e63946;
@@ -148,15 +154,13 @@
     </div>
 
     <!-- O'YIN INTERFEYSI -->
-    <div id="gameScreen" style="display: none;">
+    <div id="gameScreen">
         <h3 id="gameTitle">Apple of Fortune</h3>
-        <p id="instruction">Signal olish tugmasini bosing:</p>
+        <p>Signal olish tugmasini bosing:</p>
 
         <div class="game-wrapper">
-            <!-- Chap tomondagi koeffitsiyentlar -->
-            <div class="coefficients" id="coefList">
-                <!-- JavaScript orqali to'ldiriladi -->
-            </div>
+            <!-- Chap tomondagi aniq koeffitsiyentlar -->
+            <div class="coefficients" id="coefList"></div>
             <!-- O'yin kataklari -->
             <div class="game-grid" id="grid"></div>
         </div>
@@ -171,11 +175,9 @@
 
         let currentGame = 'apple';
 
-        const coefficientsData = [
-            "x 349.68", "x 69.93", "x 27.97", "x 11.18", 
-            "x 6.71", "x 4.02", "x 2.41", "x 1.93", 
-            "x 1.54", "x 1.23"
-        ];
+        // Siz talab qilgan aniq 5 ta koeffitsiyent (pastdan tepaga qarab)
+        const appleCoefs = ["x 4.02", "x 2.41", "x 1.93", "x 1.56", "x 1.23"];
+        const standardCoefs = ["x 5.00", "x 3.00", "x 2.00", "x 1.50", "x 1.20"];
 
         function openGame(gameType) {
             currentGame = gameType;
@@ -200,20 +202,20 @@
             grid.innerHTML = '';
             coefList.innerHTML = '';
 
-            // 10 qator va 5 ustun (jami 50 katak, yoki standart 7 qator)
-            // Haqiqiy Apple of Fortune kabi 7 qator qilamiz:
-            const totalRows = 7;
-            const activeCoefs = coefficientsData.slice(3, 10).reverse(); // Pastdan tepaga qarab
+            const currentCoefs = (currentGame === 'apple') ? appleCoefs : standardCoefs;
+            const totalRows = currentCoefs.length; // 5 qator
 
-            for (let i = 0; i < activeCoefs.length; i++) {
+            // Koeffitsiyentlarni chiqarish
+            for (let i = 0; i < totalRows; i++) {
                 const coefDiv = document.createElement('div');
                 coefDiv.className = 'coef-item';
-                coefDiv.innerText = activeCoefs[i];
+                coefDiv.innerText = currentCoefs[i];
                 coefList.appendChild(coefDiv);
             }
 
             grid.style.gridTemplateRows = `repeat(${totalRows}, 1fr)`;
 
+            // Katakchalarni hosil qilish (5 ustun x 5 qator = 25 katak)
             for (let i = 0; i < totalRows * 5; i++) {
                 const cell = document.createElement('div');
                 cell.className = 'cell';
@@ -223,9 +225,9 @@
         }
 
         function generateSignal() {
-            const totalRows = 7;
+            const totalRows = 5;
             
-            // Tozalash
+            // Avvalgi kataklarni tozalash
             for (let i = 0; i < totalRows * 5; i++) {
                 const c = document.getElementById(`cell-${i}`);
                 if(c) {
@@ -234,7 +236,7 @@
                 }
             }
 
-            // Har bir qatordan tasodifiy bittadan katakni yoritish
+            // Har bir qatordan tasodifiy bittadan katakni yoritish va belgi qo'yish
             for (let row = 0; row < totalRows; row++) {
                 const randomCol = Math.floor(Math.random() * 5);
                 const cellIndex = (row * 5) + randomCol;
